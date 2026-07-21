@@ -137,7 +137,7 @@
   /* REEL GRID */
   .reel-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
     gap:2px;
     background:var(--line);
   }
@@ -146,7 +146,8 @@
     position:relative;
   }
   .clip-frame{
-    aspect-ratio:16/9;
+    aspect-ratio:9/16;
+    max-height:640px;
     background:var(--surface);
     position:relative;
     overflow:hidden;
