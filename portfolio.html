@@ -146,14 +146,30 @@
     position:relative;
   }
   .clip-frame{
-    aspect-ratio:9/16;
-    max-height:640px;
     background:var(--surface);
     position:relative;
     overflow:hidden;
   }
-  .clip-frame iframe{
-    width:100%;height:100%;border:0;display:block;
+  /* video file & YouTube: crop rapi ke ukuran frame */
+  .clip-frame.type-video,
+  .clip-frame.type-youtube{
+    aspect-ratio:9/16;
+    max-height:640px;
+  }
+  .clip-frame.type-youtube{ aspect-ratio:16/9; max-height:none; }
+  .clip-frame.type-video video,
+  .clip-frame.type-youtube iframe{
+    width:100%;height:100%;border:0;display:block;object-fit:cover;
+  }
+  /* IG & TikTok: biarin widget resminya nentuin ukuran sendiri, kita tinggal rapiin bingkainya */
+  .clip-frame.type-instagram,
+  .clip-frame.type-tiktok{
+    display:flex;align-items:center;justify-content:center;
+    padding:14px;
+    min-height:520px;
+  }
+  .clip-frame.type-placeholder{
+    aspect-ratio:9/16;max-height:640px;
   }
   .clip-frame .placeholder{
     width:100%;height:100%;
@@ -335,8 +351,14 @@
    Gak perlu sentuh HTML atau CSS sama sekali.
 
    FIELD:
-   - type   : "instagram" | "tiktok" | "youtube"
-   - embed  : link postingan (IG/TikTok) ATAU video ID (YouTube)
+   - type   : "video" | "instagram" | "tiktok" | "youtube"
+              → "video" = paling rapi, upload file .mp4 asli lu ke folder
+                yang sama, isi embed dengan nama filenya, mis: "clip01.mp4"
+              → "instagram"/"tiktok" = bakal muncul dengan header/branding
+                bawaan platform (gak bisa dihilangin, aturan resmi mereka)
+              → "youtube" = paling bersih di antara ketiga platform ini
+   - embed  : nama file video (kalau type "video"), link postingan
+              (IG/TikTok), atau video ID (YouTube)
    - name   : judul project
    - cat    : kategori (mis. "Reels / Social", "Cinematic", dll)
    - dur    : durasi, format "00:00" (boleh dikosongin "")
@@ -345,14 +367,14 @@
 const VIDEOS = [
   {
     type: "instagram",
-    embed: "https://www.instagram.com/reel/DSZwCNqjdQN/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+    embed: "https://www.instagram.com/reel/DSZwCNqjdQN/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==/",
     name: "Judul Project 01",
     cat: "Reels / Social",
     dur: "01:24"
   },
   {
     type: "tiktok",
-    embed: "https://www.tiktok.com/@fistx.id/video/7585030605058952469?is_from_webapp=1&sender_device=pc&web_id=7594409442738849288",
+    embed: "https://www.tiktok.com/@username/video/1234567890123456789",
     name: "Judul Project 02",
     cat: "Cinematic",
     dur: "02:10"
@@ -372,18 +394,17 @@ const VIDEOS = [
    ====================================================== */
 
 function buildClipFrame(video) {
+  if (video.type === "video") {
+    // video file asli (paling rapi, tanpa branding platform apapun)
+    return `<video src="${video.embed}" autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;"></video>`;
+  }
   if (video.type === "instagram") {
-    // pastiin link diakhiri "/embed/" biar dapet versi iframe yang bersih
-    let url = video.embed.trim();
-    if (!url.endsWith("/")) url += "/";
-    if (!url.endsWith("embed/")) url += "embed/";
-    return `<iframe src="${url}" loading="lazy" style="border:0;"></iframe>`;
+    // widget resmi Instagram — ukuran ngikutin postingan aslinya, biar gak gepeng/ke-scroll
+    return `<blockquote class="instagram-media" data-instgrm-permalink="${video.embed}" data-instgrm-version="14" style="background:#FFF;border:0;border-radius:8px;margin:0;max-width:360px;min-width:280px;padding:0;width:100%;"></blockquote>`;
   }
   if (video.type === "tiktok") {
-    // ambil ID video dari link, lalu pakai iframe embed resmi TikTok
-    const match = video.embed.match(/video\/(\d+)/);
-    const id = match ? match[1] : "";
-    return `<iframe src="https://www.tiktok.com/embed/v2/${id}" allowfullscreen loading="lazy" style="border:0;"></iframe>`;
+    // widget resmi TikTok
+    return `<blockquote class="tiktok-embed" cite="${video.embed}" style="max-width:325px;min-width:280px;margin:0;"><section></section></blockquote>`;
   }
   if (video.type === "youtube") {
     return `<iframe src="https://www.youtube.com/embed/${video.embed}" allowfullscreen></iframe>`;
@@ -395,7 +416,7 @@ function renderReel() {
   const grid = document.getElementById("reelGrid");
   grid.innerHTML = VIDEOS.map(v => `
     <div class="clip">
-      <div class="clip-frame">${buildClipFrame(v)}</div>
+      <div class="clip-frame type-${v.type}">${buildClipFrame(v)}</div>
       <div class="clip-info">
         <div>
           <div class="name">${v.name}</div>
@@ -405,11 +426,22 @@ function renderReel() {
       </div>
     </div>
   `).join("");
+
+  // suruh IG & TikTok scan ulang widget yang baru di-generate
+  if (window.instgrm) window.instgrm.Embeds.process();
+  if (window.tiktokEmbed) {
+    const s = document.createElement("script");
+    s.src = "https://www.tiktok.com/embed.js";
+    document.body.appendChild(s);
+  }
 }
 
 renderReel();
 </script>
 
+<!-- Script resmi biar widget IG & TikTok bisa render — jangan dihapus -->
+<script async src="//www.instagram.com/embed.js"></script>
+<script async src="https://www.tiktok.com/embed.js"></script>
 
 </body>
 </html>
