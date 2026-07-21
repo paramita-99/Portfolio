@@ -346,46 +346,62 @@
    ISI PORTOFOLIO DI SINI
    ------------------------------------------------------
    Tiap video = satu object di dalam array VIDEOS di bawah.
-   Mau nambah karya baru? Tinggal copy satu blok { ... },
+   Mau nambah karya baru? Tinggal copy salah satu blok { ... },
    paste di bagian paling atas array, isi datanya, save.
-   Gak perlu sentuh HTML atau CSS sama sekali.
+   Gak perlu sentuh HTML atau CSS sama sekali — dan BOLEH
+   dicampur, sebagian pakai "video" sebagian pakai "instagram"
+   dst dalam satu array yang sama.
 
-   FIELD:
-   - type   : "video" | "instagram" | "tiktok" | "youtube"
-              → "video" = paling rapi, upload file .mp4 asli lu ke folder
-                yang sama, isi embed dengan nama filenya, mis: "clip01.mp4"
-              → "instagram"/"tiktok" = bakal muncul dengan header/branding
-                bawaan platform (gak bisa dihilangin, aturan resmi mereka)
-              → "youtube" = paling bersih di antara ketiga platform ini
-   - embed  : nama file video (kalau type "video"), link postingan
-              (IG/TikTok), atau video ID (YouTube)
-   - name   : judul project
-   - cat    : kategori (mis. "Reels / Social", "Cinematic", dll)
-   - dur    : durasi, format "00:00" (boleh dikosongin "")
+   FIELD "type", pilih salah satu:
+   - "video"     → paling rapi & paling cepat loading, karena
+                   file-nya nempel di repo lu sendiri.
+                   embed = nama file, mis. "clip01.mp4"
+                   (upload file .mp4-nya ke repo yang sama)
+   - "youtube"   → embed = ID video YouTube
+   - "instagram" → embed = link postingan. Bakal tampil dengan
+                   identitas/header asli akun IG-nya.
+   - "tiktok"    → embed = link video. Bakal tampil dengan
+                   identitas/header asli akun TikTok-nya.
+
+   Field lain (sama buat semua type):
+   - name : judul project
+   - cat  : kategori, mis. "Reels / Social", "Cinematic", dll
+   - dur  : durasi, format "00:00" (boleh dikosongin "")
    ====================================================== */
 
 const VIDEOS = [
+  // Video versi file asli — upload .mp4-nya ke repo, isi nama filenya di "embed"
+  {
+    type: "video",
+    embed: "clip01.mp4",
+    name: "Judul Project 01",
+    cat: "Cinematic",
+    dur: "02:10"
+  },
+  {
+    type: "video",
+    embed: "clip02.mp4",
+    name: "Judul Project 02",
+    cat: "Commercial",
+    dur: "00:45"
+  },
+
+  // Video yang cuma ada di sosmed — pakai link postingannya
   {
     type: "instagram",
-    embed: "https://www.instagram.com/reel/DSZwCNqjdQN/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==/",
-    name: "Judul Project 01",
+    embed: "https://www.instagram.com/reel/XXXXXXXXXXX/",
+    name: "Judul Project 03",
     cat: "Reels / Social",
     dur: "01:24"
   },
   {
     type: "tiktok",
     embed: "https://www.tiktok.com/@username/video/1234567890123456789",
-    name: "Judul Project 02",
-    cat: "Cinematic",
-    dur: "02:10"
+    name: "Judul Project 04",
+    cat: "Reels / Social",
+    dur: "00:58"
   },
-  {
-    type: "youtube",
-    embed: "VIDEO_ID_YOUTUBE",
-    name: "Judul Project 03",
-    cat: "Commercial",
-    dur: "00:45"
-  },
+
   // Tambah project baru di bawah sini, tinggal copy salah satu blok di atas 👆
 ];
 
@@ -437,11 +453,22 @@ function renderReel() {
 }
 
 renderReel();
-</script>
 
-<!-- Script resmi biar widget IG & TikTok bisa render — jangan dihapus -->
-<script async src="//www.instagram.com/embed.js"></script>
-<script async src="https://www.tiktok.com/embed.js"></script>
+// script IG/TikTok cuma di-load kalau emang ada project yang pakai type itu
+// (biar portofolio full video file tetep loading paling cepat)
+if (VIDEOS.some(v => v.type === "instagram")) {
+  const igScript = document.createElement("script");
+  igScript.async = true;
+  igScript.src = "//www.instagram.com/embed.js";
+  document.body.appendChild(igScript);
+}
+if (VIDEOS.some(v => v.type === "tiktok")) {
+  const ttScript = document.createElement("script");
+  ttScript.async = true;
+  ttScript.src = "https://www.tiktok.com/embed.js";
+  document.body.appendChild(ttScript);
+}
+</script>
 
 </body>
 </html>
