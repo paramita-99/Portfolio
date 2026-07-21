@@ -373,10 +373,17 @@ const VIDEOS = [
 
 function buildClipFrame(video) {
   if (video.type === "instagram") {
-    return `<blockquote class="instagram-media" data-instgrm-permalink="${video.embed}" data-instgrm-version="14" style="width:100%;height:100%;margin:0;"></blockquote>`;
+    // pastiin link diakhiri "/embed/" biar dapet versi iframe yang bersih
+    let url = video.embed.trim();
+    if (!url.endsWith("/")) url += "/";
+    if (!url.endsWith("embed/")) url += "embed/";
+    return `<iframe src="${url}" loading="lazy" style="border:0;"></iframe>`;
   }
   if (video.type === "tiktok") {
-    return `<blockquote class="tiktok-embed" cite="${video.embed}" style="width:100%;height:100%;margin:0;"><section></section></blockquote>`;
+    // ambil ID video dari link, lalu pakai iframe embed resmi TikTok
+    const match = video.embed.match(/video\/(\d+)/);
+    const id = match ? match[1] : "";
+    return `<iframe src="https://www.tiktok.com/embed/v2/${id}" allowfullscreen loading="lazy" style="border:0;"></iframe>`;
   }
   if (video.type === "youtube") {
     return `<iframe src="https://www.youtube.com/embed/${video.embed}" allowfullscreen></iframe>`;
@@ -398,18 +405,11 @@ function renderReel() {
       </div>
     </div>
   `).join("");
-
-  // reload embed script IG/TikTok tiap kali grid berubah
-  if (window.instgrm) window.instgrm.Embeds.process();
-  if (window.tiktokEmbed && window.tiktokEmbed.lib) window.tiktokEmbed.lib.render();
 }
 
 renderReel();
 </script>
 
-<!-- Script resmi embed Instagram & TikTok — jangan dihapus -->
-<script async src="//www.instagram.com/embed.js"></script>
-<script async src="https://www.tiktok.com/embed.js"></script>
 
 </body>
 </html>
